@@ -87,3 +87,4 @@ if __name__ == "__main__":
 #    print(icontmp)
     os.system('unzip -j "' + apkFile + '" ' + icon + ' -d /tmp/ && mv /tmp/' +iconp + " " + icontmp)
     Test().run()
+
