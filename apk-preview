@@ -15,7 +15,7 @@ class ListBoxRowWithData(Gtk.ListBoxRow):
         self.label.set_size_request(25,25)
         self.add(self.label)
 
-class Test (object):
+class Main(object):
 
     def __init__(self):
         self.builder = Gtk.Builder()
@@ -25,6 +25,8 @@ class Test (object):
         self.builder.connect_signals(self)
 
     def run(self, *args):
+        settings = Gtk.Settings.get_default()
+        settings.set_property("gtk-application-prefer-dark-theme", False)
         self.window = self.builder.get_object("window1")
         self.name = self.builder.get_object("name")
         self.name.set_alignment(0,0.5)
@@ -104,5 +106,5 @@ if __name__ == "__main__":
     # icontmp=os.popen('mktemp -t XXXXXXX.png').read().replace('\n' , "")
 #    print(icontmp)
     # os.system('unzip -j "' + apkFile + '" ' + icon + ' -d /tmp/ && mv /tmp/' +iconp + " " + icontmp)
-    Test().run()
+    Main().run()
 
