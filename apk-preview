@@ -19,8 +19,8 @@ class Test (object):
 
     def __init__(self):
         self.builder = Gtk.Builder()
-        path = os.path.dirname(os.path.realpath(__file__))
-        #path="/usr/share/apk-preview"
+        # path = os.path.dirname(os.path.realpath(__file__))
+        path="/usr/share/apk-preview"
         self.builder.add_from_file(path+"/apk-preview-ui.glade") 
         self.builder.connect_signals(self)
 

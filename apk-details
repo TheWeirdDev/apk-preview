@@ -12,23 +12,31 @@ fi
 
 APK_FILE=$1
 
+patha=`ls -1 /opt/android-sdk/build-tools/ | tail -1`
+aaptpath=/opt/android-sdk/build-tools/$patha
+
+if [ ! $aaptpath ];then
+    echo Android aapt tools not found 
+    exit 3
+fi
+
 #PERMS
-/usr/share/apk-preview/aapt d badging "$APK_FILE" | grep uses-permission | sed -e "s/.*://" -e "s/.*=//" -e "s/'//g" | tr "\n" "," | sed 's/,$//g'
+${aaptpath}/aapt d badging "$APK_FILE" | grep uses-permission | sed -e "s/.*://" -e "s/.*=//" -e "s/'//g" | tr "\n" "," | sed 's/,$//g'
 echo
 #NAME
-/usr/share/apk-preview/aapt d badging "$APK_FILE" | grep application-label | head -1 | sed -e "s/.*://g" -e "s/'//g" 
+${aaptpath}/aapt d badging "$APK_FILE" | grep application-label | head -1 | sed -e "s/.*://g" -e "s/'//g" 
 #VERNAME
-/usr/share/apk-preview/aapt d badging "$APK_FILE" | grep versionName | sed -e "s/.*=//g" -e "s/'//g"
+${aaptpath}/aapt d badging "$APK_FILE" | grep versionName | sed -e "s/.*=//g" -e "s/'//g"
 #VERCODE
-/usr/share/apk-preview/aapt d badging "$APK_FILE" | grep versionCode | sed -e "s/.*versionCode=//g" -e "s/versionName=.*//g" -e "s/'//g"
+${aaptpath}/aapt d badging "$APK_FILE" | grep versionCode | sed -e "s/.*versionCode=//g" -e "s/versionName=.*//g" -e "s/'//g"
 #MINSDK
-/usr/share/apk-preview/aapt d badging "$APK_FILE" | grep sdkVersion | sed -e "s/sdkVersion://" -e "s/'//g"
+${aaptpath}/aapt d badging "$APK_FILE" | grep sdkVersion | sed -e "s/sdkVersion://" -e "s/'//g"
 #PKGNAME
-/usr/share/apk-preview/aapt d badging "$APK_FILE" | grep package | cut -d" "  -f2 | sed -e "s/.*=//" -e "s/'//g"
+${aaptpath}/aapt d badging "$APK_FILE" | grep package | cut -d" "  -f2 | sed -e "s/.*=//" -e "s/'//g"
 #ICON
-ICON=`/usr/share/apk-preview/aapt d badging "$APK_FILE" | grep application-icon | tail -1 | sed -e "s/.*://" -e "s/'//g"`
+ICON=`${aaptpath}/aapt d badging "$APK_FILE" | grep application-icon | tail -1 | sed -e "s/.*://" -e "s/'//g"`
 #ICON_NAME
-ICON_NAME=`/usr/share/apk-preview/aapt d badging "$APK_FILE" | grep application-icon | tail -1 | sed -e "s/.*://" -e "s/'//g" -e "s/.*\///g"`
+ICON_NAME=`${aaptpath}/aapt d badging "$APK_FILE" | grep application-icon | tail -1 | sed -e "s/.*://" -e "s/'//g" -e "s/.*\///g"`
 #TMPFILE
 TMPFILE=`mktemp -t XXXXXXX.png`
 echo $TMPFILE
