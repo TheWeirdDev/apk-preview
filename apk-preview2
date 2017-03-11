@@ -1,6 +1,8 @@
 #!/usr/bin/python3
 
 import gi , os , sys , subprocess
+from subprocess import PIPE
+
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk , GdkPixbuf
 
@@ -71,20 +73,36 @@ if __name__ == "__main__":
         exit(1)
     apkFile=sys.argv[1]
     
-#    print(apkFile)
-    perms=os.popen('aapt d badging "' + apkFile +'" | grep uses-permission | sed "s/.*://" | sed "s/.*=//" | sed "s/\'//g" ').read()  
-    perms=perms.split('\n')
-#    print(perms)
-    appname=os.popen('aapt d badging "' + apkFile + '"  | grep application-label | head -1 | sed -e "s/.*://g" -e "s/\'//g" ').read().replace('\n' , "")
-    version=os.popen('aapt d badging "' + apkFile + '"  | grep versionName | sed -e "s/.*=//g" -e "s/\'//g" ' ).read()
-    versioncode=os.popen('aapt d badging "' + apkFile + '" | grep versionCode | sed -e "s/.*versionCode=//g" -e "s/versionName=.*//g" -e "s/\'//g"').read()
-    minsdk=os.popen('aapt d badging "' + apkFile +'" | grep sdkVersion | sed -e "s/sdkVersion://" -e "s/\'//g"').read()
-    package=os.popen('aapt d badging  "' + apkFile +'"  | grep package | cut -d" "  -f2 | sed -e "s/.*=//" -e "s/\'//g" ').read()
+    details = os.popen('/usr/bin/apk-details ' + apkFile)
+    data=details.read().strip().split('\n')
+
+    if len(data) < 3:
+        print("Can't open the file : {}".format(apkFile))
+        exit(2)
     
-    icon=os.popen('aapt d badging "' + apkFile +'"  | grep application-icon | tail -1 | sed -e "s/.*://" -e "s/\'//g"').read().replace('\n' , "")
-    iconp=os.popen('aapt d badging "' + apkFile +'"  | grep application-icon | tail -1 | sed -e "s/.*://" -e "s/\'//g" -e "s/.*\///g" ').read().replace('\n' , "")
-    icontmp=os.popen('mktemp -t XXXXXXX.png').read().replace('\n' , "")
+    perms=data[0].split(',')
+    appname=data[1]
+    version=data[2]
+    versioncode=data[3]
+    minsdk=data[4]
+    package=data[5]
+    icontmp=data[6]
+
+    
+#    print(apkFile)
+    # perms=os.popen('aapt d badging "' + apkFile +'" | grep uses-permission | sed "s/.*://" | sed "s/.*=//" | sed "s/\'//g" ').read()  
+    # perms=perms.split('\n')
+#    print(perms)
+    # appname=os.popen('aapt d badging "' + apkFile + '"  | grep application-label | head -1 | sed -e "s/.*://g" -e "s/\'//g" ').read().replace('\n' , "")
+    # version=os.popen('aapt d badging "' + apkFile + '"  | grep versionName | sed -e "s/.*=//g" -e "s/\'//g" ' ).read()
+    # versioncode=os.popen('aapt d badging "' + apkFile + '" | grep versionCode | sed -e "s/.*versionCode=//g" -e "s/versionName=.*//g" -e "s/\'//g"').read()
+    # minsdk=os.popen('aapt d badging "' + apkFile +'" | grep sdkVersion | sed -e "s/sdkVersion://" -e "s/\'//g"').read()
+    # package=os.popen('aapt d badging  "' + apkFile +'"  | grep package | cut -d" "  -f2 | sed -e "s/.*=//" -e "s/\'//g" ').read()
+    
+    # icon=os.popen('aapt d badging "' + apkFile +'"  | grep application-icon | tail -1 | sed -e "s/.*://" -e "s/\'//g"').read().replace('\n' , "")
+    # iconp=os.popen('aapt d badging "' + apkFile +'"  | grep application-icon | tail -1 | sed -e "s/.*://" -e "s/\'//g" -e "s/.*\///g" ').read().replace('\n' , "")
+    # icontmp=os.popen('mktemp -t XXXXXXX.png').read().replace('\n' , "")
 #    print(icontmp)
-    os.system('unzip -j "' + apkFile + '" ' + icon + ' -d /tmp/ && mv /tmp/' +iconp + " " + icontmp)
+    # os.system('unzip -j "' + apkFile + '" ' + icon + ' -d /tmp/ && mv /tmp/' +iconp + " " + icontmp)
     Test().run()
 

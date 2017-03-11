@@ -1,0 +1,37 @@
+#!/bin/bash
+
+if [ ! $1 ]; then
+    echo "You must specify an apk file"
+    echo "usage : apk-details [APK FILE]"
+    exit 1
+fi
+if [ ! -f "$1" ]; then
+    echo File not found.
+    exit 2
+fi
+
+APK_FILE=$1
+
+#PERMS
+/usr/share/apk-preview/aapt d badging "$APK_FILE" | grep uses-permission | sed -e "s/.*://" -e "s/.*=//" -e "s/'//g" | tr "\n" "," | sed 's/,$//g'
+echo
+#NAME
+/usr/share/apk-preview/aapt d badging "$APK_FILE" | grep application-label | head -1 | sed -e "s/.*://g" -e "s/'//g" 
+#VERNAME
+/usr/share/apk-preview/aapt d badging "$APK_FILE" | grep versionName | sed -e "s/.*=//g" -e "s/'//g"
+#VERCODE
+/usr/share/apk-preview/aapt d badging "$APK_FILE" | grep versionCode | sed -e "s/.*versionCode=//g" -e "s/versionName=.*//g" -e "s/'//g"
+#MINSDK
+/usr/share/apk-preview/aapt d badging "$APK_FILE" | grep sdkVersion | sed -e "s/sdkVersion://" -e "s/'//g"
+#PKGNAME
+/usr/share/apk-preview/aapt d badging "$APK_FILE" | grep package | cut -d" "  -f2 | sed -e "s/.*=//" -e "s/'//g"
+#ICON
+ICON=`/usr/share/apk-preview/aapt d badging "$APK_FILE" | grep application-icon | tail -1 | sed -e "s/.*://" -e "s/'//g"`
+#ICON_NAME
+ICON_NAME=`/usr/share/apk-preview/aapt d badging "$APK_FILE" | grep application-icon | tail -1 | sed -e "s/.*://" -e "s/'//g" -e "s/.*\///g"`
+#TMPFILE
+TMPFILE=`mktemp -t XXXXXXX.png`
+echo $TMPFILE
+#MOVE ICON TO TMPFILE
+unzip -j $APK_FILE $ICON -d /tmp/ > /dev/null && mv /tmp/$ICON_NAME $TMPFILE 
+exit 0
