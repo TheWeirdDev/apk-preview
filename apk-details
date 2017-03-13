@@ -21,8 +21,13 @@ if [ ! $aaptpath ];then
 fi
 
 #PERMS
-${aaptpath}/aapt d badging "$APK_FILE" | grep uses-permission | sed -e "s/.*://" -e "s/.*=//" -e "s/'//g" | tr "\n" "," | sed 's/,$//g'
-echo
+perms=`${aaptpath}/aapt d badging "$APK_FILE" | grep uses-permission | sed -e "s/.*://" -e "s/.*=//" -e "s/'//g" | tr "\n" "," | sed 's/,$//g'`
+if [ $perms ]; then
+    echo $perms
+else
+    echo "No permissions"
+fi
+
 #NAME
 ${aaptpath}/aapt d badging "$APK_FILE" | grep application-label | head -1 | sed -e "s/.*://g" -e "s/'//g" 
 #VERNAME
@@ -32,7 +37,7 @@ ${aaptpath}/aapt d badging "$APK_FILE" | grep versionCode | sed -e "s/.*versionC
 #MINSDK
 ${aaptpath}/aapt d badging "$APK_FILE" | grep sdkVersion | sed -e "s/sdkVersion://" -e "s/'//g"
 #PKGNAME
-${aaptpath}/aapt d badging "$APK_FILE" | grep package | cut -d" "  -f2 | sed -e "s/.*=//" -e "s/'//g"
+${aaptpath}/aapt d badging "$APK_FILE" | grep package | head -1 | cut -d" "  -f2 | sed -e "s/.*=//" -e "s/'//g"
 #ICON
 ICON=`${aaptpath}/aapt d badging "$APK_FILE" | grep application-icon | tail -1 | sed -e "s/.*://" -e "s/'//g"`
 #ICON_NAME
