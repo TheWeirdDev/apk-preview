@@ -81,7 +81,7 @@ def open_response(dialog , id):
         Gtk.main_quit()
  
     elif id == Gtk.ResponseType.CANCEL:
-        print("cancelled: FileChooserAction.SAVE")
+        print("cancelled")
         dialog.destroy()
         Gtk.main_quit()
 
@@ -107,11 +107,15 @@ def choose_file():
 
 if __name__ == "__main__":
     if len(sys.argv) < 2 :
+        
         #print("You must specify an apk file\nusage : apk-preview [APK FILE]");
         #exit(1)
         choose_file()
     else:
-        apkFile=sys.argv[1]
+        if len(sys.argv[1]) < 1:
+            choose_file()
+        else:
+            apkFile=sys.argv[1]
     
     details = os.popen('/usr/bin/apk-details ' + apkFile)
     data=details.read().strip().split('\n')
