@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [ ! $1 ]; then
+if [ ! "$1" ]; then
     echo "You must specify an apk file"
     echo "usage : apk-details [APK FILE]"
     exit 1
@@ -29,13 +29,28 @@ else
 fi
 
 #NAME
-${aaptpath}/aapt d badging "$APK_FILE" | grep application-label | head -1 | sed -e "s/.*://g" -e "s/'//g" 
+name=`${aaptpath}/aapt d badging "$APK_FILE" | grep application-label | head -1 | sed -e "s/.*://g" -e "s/'//g"`
+if [ $name ]; then
+    echo $name
+else
+    echo "_Unknown_"
+fi
 #VERNAME
-${aaptpath}/aapt d badging "$APK_FILE" | grep versionName | sed -e "s/.*=//g" -e "s/'//g"
+ver=`${aaptpath}/aapt d badging "$APK_FILE" | grep versionName | sed -e "s/.*=//g" -e "s/'//g"`
+if [ $ver ]; then
+    echo $ver
+else
+    echo "_Error_"
+fi
 #VERCODE
 ${aaptpath}/aapt d badging "$APK_FILE" | grep versionCode | sed -e "s/.*versionCode=//g" -e "s/versionName=.*//g" -e "s/'//g"
 #MINSDK
-${aaptpath}/aapt d badging "$APK_FILE" | grep sdkVersion | sed -e "s/sdkVersion://" -e "s/'//g"
+min=`${aaptpath}/aapt d badging "$APK_FILE" | grep sdkVersion | sed -e "s/sdkVersion://" -e "s/'//g"`
+if [ $min ]; then
+    echo $min
+else
+    echo "_Not_Specified_"
+fi
 #PKGNAME
 ${aaptpath}/aapt d badging "$APK_FILE" | grep package | head -1 | cut -d" "  -f2 | sed -e "s/.*=//" -e "s/'//g"
 #ICON
@@ -46,5 +61,5 @@ ICON_NAME=`${aaptpath}/aapt d badging "$APK_FILE" | grep application-icon | tail
 TMPFILE=`mktemp -t XXXXXXX.png`
 echo $TMPFILE
 #MOVE ICON TO TMPFILE
-unzip -j $APK_FILE $ICON -d /tmp/ > /dev/null && mv /tmp/$ICON_NAME $TMPFILE 
+unzip -j "$APK_FILE" $ICON -d /tmp/ > /dev/null && mv /tmp/$ICON_NAME $TMPFILE 
 exit 0

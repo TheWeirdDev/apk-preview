@@ -1,10 +1,16 @@
 #!/usr/bin/python3
 
-import gi , os , sys , subprocess
-from subprocess import PIPE
+import gi , os , sys , threading
+#from subprocess import PIPE
 
 gi.require_version('Gtk', '3.0')
-from gi.repository import Gtk , GdkPixbuf
+from gi.repository import Gtk , GdkPixbuf 
+
+sys.path.insert(0, '/usr/share/apk-preview/')
+import process_runner
+
+apkFile=""
+apk=''
 
 class ListBoxRowWithData(Gtk.ListBoxRow):
     def __init__(self, data):
@@ -15,7 +21,74 @@ class ListBoxRowWithData(Gtk.ListBoxRow):
         self.label.set_size_request(25,25)
         self.add(self.label)
 
-class Main(object):
+    def get_data(self):
+        return self.data
+
+    def get_user_data(self):
+        return self.user_data
+
+    def set_user_data(self , udata):
+        self.user_data = udata
+
+device_chooser_active = False
+class DeviceChooser():
+    
+    def __init__(self):
+        self.builder = Gtk.Builder()
+        self.builder.add_from_file("/usr/share/apk-preview/device-chooser.glade")
+        self.builder.connect_signals(self)
+
+    def show(self):
+        self.window = self.builder.get_object("window")
+        self.window.connect("delete-event", self.quit)
+        self.list = self.builder.get_object("listbox")
+        self.install = self.builder.get_object("install")
+        self.install.connect('clicked', self.install_apk)
+        self.close_btn = self.builder.get_object('close')
+        self.close_btn.connect('clicked' , self.quit)
+        self.refresh_btn = self.builder.get_object('refresh')
+        self.refresh_btn.connect('clicked', self.refresh)
+        
+        self.devices = os.popen("adb devices | sed -e '/^List of/ d' -e '/^*/ d' -e 's/\tdevice//g' -e '/^$/ d'").read().strip().split('\n')
+        self.refresh()
+
+        global device_chooser_active
+        device_chooser_active = True
+        self.window.show()
+
+    def refresh(self , *args):
+        self.devices = os.popen("adb devices | sed -e '/^List of/ d' -e '/^*/ d' -e 's/\tdevice//g' -e '/^$/ d'").read().strip().split('\n')
+
+        for i in self.list.get_children():
+            self.list.remove(i)
+
+        for device in self.devices:
+            info = os.popen("adb -s {} shell 'getprop ro.product.manufacturer ; getprop ro.product.model ; getprop ro.product.name ; echo Android ; getprop ro.build.version.release'".format(device)).read().strip().replace('\n' , ' ')
+            row = ListBoxRowWithData(device + ' : ' + info)
+            row.set_user_data(device)
+            self.list.add(row)
+        self.list.show_all()
+
+
+    def install_apk(self , *args):
+        global apk
+        result = ""
+        device = self.list.get_selected_row().get_user_data()
+        # result = os.popen("adb -s {} install {}".format(device , apkFile)).read().strip().split('\n')[-1]
+        
+        a = process_runner.MySpawned(['adb' , '-s' , device , 'install' , apk])
+        a.run()
+        # if result.startswith("Success"):
+            # self.on_success()
+        # elif result.startswith("Failure"):
+            # self.on_error(result)
+
+    def quit(self , *args):
+        global device_chooser_active
+        device_chooser_active = False
+        self.window.hide()
+        
+class Main():
 
     def __init__(self):
         self.builder = Gtk.Builder()
@@ -29,6 +102,8 @@ class Main(object):
         settings.set_property("gtk-application-prefer-dark-theme", False)
         self.window = self.builder.get_object("window1")
         self.name = self.builder.get_object("name")
+        self.install = self.builder.get_object('install_btn')
+        self.install.connect('clicked' , self.install_click)
         self.name.set_alignment(0,0.5)
         self.name.set_text(appname)
         self.ver = self.builder.get_object("ver")
@@ -39,6 +114,8 @@ class Main(object):
         self.min.set_alignment(0,0.5)
         self.pkg = self.builder.get_object("package")
         self.pkg.set_alignment(0,0.5)
+        self.about = self.builder.get_object('about')
+        self.about.set_alignment(0.5,0.25)
         self.ver.set_text("Version: " + version)
         self.vc.set_text("Version code : " + versioncode)
         self.min.set_text("Min sdk: " + minsdk)
@@ -61,30 +138,38 @@ class Main(object):
         pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(icontmp, width=96, height=96,
                                                  preserve_aspect_ratio=False)
         self.img.set_from_pixbuf(pixbuf)
+
+        self.img2 = self.builder.get_object("icon_about")
+        pixbuf2 = GdkPixbuf.Pixbuf.new_from_file_at_scale('/usr/share/icons/hicolor/scalable/apps/apk-preview.svg', width=128, height=128,
+                                                 preserve_aspect_ratio=False)
+        self.img2.set_from_pixbuf(pixbuf2)
         
         Gtk.main()
+
+    def install_click(self, *args):
+        if not device_chooser_active:
+             DeviceChooser().show()
 
     def quit(self, *args):
         os.remove(icontmp)
         self.window.hide()
         Gtk.main_quit()
 
-apkFile=""
+
 
 def open_response(dialog , id):
     open_dialog = dialog
     if id == Gtk.ResponseType.ACCEPT:
         global apkFile 
         apkFile = "'" + open_dialog.get_filename() + "'"
-
+        global apk
+        apk = open_dialog.get_filename()
         dialog.destroy()
         Gtk.main_quit()
- 
     elif id == Gtk.ResponseType.CANCEL:
         print("cancelled")
         dialog.destroy()
         Gtk.main_quit()
-
         exit(1)
 
 
@@ -115,14 +200,18 @@ if __name__ == "__main__":
         if len(sys.argv[1]) < 1:
             choose_file()
         else:
-            apkFile=sys.argv[1]
-    
+            apkFile="'" +sys.argv[1]+ "'"
+            apk = sys.argv[1]
+
     details = os.popen('/usr/bin/apk-details ' + apkFile)
     data=details.read().strip().split('\n')
 
     if len(data) < 3:
         print("Can't open the file : {}".format(apkFile))
         exit(2)
+
+
+
     
     perms=data[0].split(',')
     appname=data[1]
@@ -132,21 +221,5 @@ if __name__ == "__main__":
     package=data[5]
     icontmp=data[6]
 
-    
-#    print(apkFile)
-    # perms=os.popen('aapt d badging "' + apkFile +'" | grep uses-permission | sed "s/.*://" | sed "s/.*=//" | sed "s/\'//g" ').read()  
-    # perms=perms.split('\n')
-#    print(perms)
-    # appname=os.popen('aapt d badging "' + apkFile + '"  | grep application-label | head -1 | sed -e "s/.*://g" -e "s/\'//g" ').read().replace('\n' , "")
-    # version=os.popen('aapt d badging "' + apkFile + '"  | grep versionName | sed -e "s/.*=//g" -e "s/\'//g" ' ).read()
-    # versioncode=os.popen('aapt d badging "' + apkFile + '" | grep versionCode | sed -e "s/.*versionCode=//g" -e "s/versionName=.*//g" -e "s/\'//g"').read()
-    # minsdk=os.popen('aapt d badging "' + apkFile +'" | grep sdkVersion | sed -e "s/sdkVersion://" -e "s/\'//g"').read()
-    # package=os.popen('aapt d badging  "' + apkFile +'"  | grep package | cut -d" "  -f2 | sed -e "s/.*=//" -e "s/\'//g" ').read()
-    
-    # icon=os.popen('aapt d badging "' + apkFile +'"  | grep application-icon | tail -1 | sed -e "s/.*://" -e "s/\'//g"').read().replace('\n' , "")
-    # iconp=os.popen('aapt d badging "' + apkFile +'"  | grep application-icon | tail -1 | sed -e "s/.*://" -e "s/\'//g" -e "s/.*\///g" ').read().replace('\n' , "")
-    # icontmp=os.popen('mktemp -t XXXXXXX.png').read().replace('\n' , "")
-#    print(icontmp)
-    # os.system('unzip -j "' + apkFile + '" ' + icon + ' -d /tmp/ && mv /tmp/' +iconp + " " + icontmp)
     Main().run()
 
