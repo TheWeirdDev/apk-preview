@@ -30,14 +30,14 @@ fi
 
 #NAME
 name=`${aaptpath}/aapt d badging "$APK_FILE" | grep application-label | head -1 | sed -e "s/.*://g" -e "s/'//g"`
-if [ $name ]; then
+if [ "$name" ]; then
     echo $name
 else
     echo "_Unknown_"
 fi
 #VERNAME
 ver=`${aaptpath}/aapt d badging "$APK_FILE" | grep versionName | sed -e "s/.*=//g" -e "s/'//g"`
-if [ $ver ]; then
+if [ "$ver" ]; then
     echo $ver
 else
     echo "_Error_"
@@ -46,7 +46,7 @@ fi
 ${aaptpath}/aapt d badging "$APK_FILE" | grep versionCode | sed -e "s/.*versionCode=//g" -e "s/versionName=.*//g" -e "s/'//g"
 #MINSDK
 min=`${aaptpath}/aapt d badging "$APK_FILE" | grep sdkVersion | sed -e "s/sdkVersion://" -e "s/'//g"`
-if [ $min ]; then
+if [ "$min" ]; then
     echo $min
 else
     echo "_Not_Specified_"

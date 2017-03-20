@@ -63,6 +63,8 @@ class DeviceChooser():
             self.list.remove(i)
 
         for device in self.devices:
+            if len(device) < 1:
+                continue
             info = os.popen("adb -s {} shell 'getprop ro.product.manufacturer ; getprop ro.product.model ; getprop ro.product.name ; echo Android ; getprop ro.build.version.release'".format(device)).read().strip().replace('\n' , ' ')
             row = ListBoxRowWithData(device + ' : ' + info)
             row.set_user_data(device)
@@ -71,6 +73,9 @@ class DeviceChooser():
 
 
     def install_apk(self , *args):
+        if len(self.list.get_children()) < 1:
+            return
+
         global apk
         result = ""
         device = self.list.get_selected_row().get_user_data()
