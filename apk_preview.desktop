@@ -3,7 +3,7 @@
 Name=Apk preview
 Name[en_US]=Apk preview
 Type=Application
-Exec=apk-preview "%f"
+Exec=apk-preview %f
 MimeType=application/vnd.android.package-archive;
 Terminal=false
 Icon=apk-preview
