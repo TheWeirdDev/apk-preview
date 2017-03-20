@@ -58,7 +58,7 @@ class MySpawned(Gtk.Window):
         def write_to_textview(io, condition, tw):
             if condition is GLib.IO_HUP:
                 GLib.source_remove(self.source_id_out)
-                GLib.source_remove(self.source_id_err)
+                #GLib.source_remove(self.source_id_err)
                 return False
 
             line = io.readline()
@@ -84,10 +84,10 @@ class MySpawned(Gtk.Window):
                                  self.tw_out,
                                  priority=GLib.PRIORITY_HIGH)
 
-        self.source_id_err = err.add_watch(GLib.IO_IN|GLib.IO_HUP,
-                                 write_to_textview,
-                                 self.tw_err,
-                                 priority=GLib.PRIORITY_HIGH)
+       # self.source_id_err = err.add_watch(GLib.IO_IN|GLib.IO_HUP,
+       #                          write_to_textview,
+       #                          self.tw_err,
+       #                          priority=GLib.PRIORITY_HIGH)
 
         timeout_id = GLib.timeout_add(100, self.update_progress)
 
