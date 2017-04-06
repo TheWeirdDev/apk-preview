@@ -11,6 +11,9 @@ class MySpawned(Gtk.Window):
         vb = Gtk.VBox(False, 5)
 
         self.tw_out = Gtk.TextView()
+        def nothing(arg1, arg2):
+            return True
+        self.tw_out.connect('button-press-event', nothing)
 
         sw = Gtk.ScrolledWindow()
         vb.pack_start(sw, True, True, 0)
