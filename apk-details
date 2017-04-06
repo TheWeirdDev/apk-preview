@@ -36,7 +36,7 @@ else
     echo "_Unknown_"
 fi
 #VERNAME
-ver=`${aaptpath}/aapt d badging "$APK_FILE" | grep versionName | sed -e "s/.*=//g" -e "s/'//g"`
+ver=`${aaptpath}/aapt d badging "$APK_FILE" | grep versionName | sed -e "s/.*versionName='//g" -e "s/'.*//"`
 if [ "$ver" ]; then
     echo $ver
 else
