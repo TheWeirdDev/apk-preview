@@ -33,7 +33,12 @@ name=`${aaptpath}/aapt d badging "$APK_FILE" | grep application-label | head -1 
 if [ "$name" ]; then
     echo $name
 else
-    echo "_Unknown_"
+    name2=`aapt d badging "$APK_FILE" | grep launchable-activity | sed -e "s/.*label=//" -e "s/' .*//" | tr -d "'"`
+    if [ "$name2" ]; then
+        echo $name2
+    else
+        echo "_Unknown_"
+    fi
 fi
 #VERNAME
 ver=`${aaptpath}/aapt d badging "$APK_FILE" | grep versionName | sed -e "s/.*versionName='//g" -e "s/'.*//"`
