@@ -12,7 +12,15 @@ yaourt -S apk-preview
 
 ## Ubuntu
 
-Sorry, ubuntu release is not ready yet
+Only 16.04 is supported for now
+
+```bash
+sudo add-apt-repository ppa:alireza6677/alireza6677
+
+sudo apt update
+
+sudo apt install apk-preview
+```
 
 # Screenshots
 
