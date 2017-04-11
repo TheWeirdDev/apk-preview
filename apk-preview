@@ -119,11 +119,14 @@ class Main():
         self.min.set_alignment(0,0.5)
         self.pkg = self.builder.get_object("package")
         self.pkg.set_alignment(0,0.5)
+        self.target = self.builder.get_object("target")
+        self.target.set_alignment(0,0.5)
         self.about = self.builder.get_object('about')
         self.about.set_alignment(0.5,0.25)
         self.ver.set_text("Version: " + version)
         self.vc.set_text("Version code : " + versioncode)
         self.min.set_text("Min sdk: " + minsdk)
+        self.target.set_text("Target sdk: " + tgsdk)
         self.pkg.set_text(package);
         self.window.show()
         self.window.connect("delete-event", self.quit)
@@ -225,6 +228,7 @@ if __name__ == "__main__":
     minsdk=data[4]
     package=data[5]
     icontmp=data[6]
+    tgsdk=data[7] 
 
     Main().run()
 

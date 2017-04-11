@@ -62,4 +62,11 @@ TMPFILE=`mktemp -t XXXXXXX.png`
 echo $TMPFILE
 #MOVE ICON TO TMPFILE
 unzip -j "$APK_FILE" $ICON -d /tmp/ > /dev/null && mv /tmp/$ICON_NAME $TMPFILE 
+#TARGETSDK
+tgsdk=`${aaptpath}/aapt d badging "$APK_FILE"  | grep targetSdk | sed "s/.*://" | tr -d "'"`
+if [ "$tgsdk" ]; then
+    echo $tgsdk
+else
+    echo "_Not_defined_"
+fi
 exit 0
